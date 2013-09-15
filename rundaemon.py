@@ -83,7 +83,7 @@ USAGE
         
         
         # set defaults
-        parser.set_defaults(verbose=0,port=8080,host="jabber.org")
+        parser.set_defaults(verbose=0,port=8080)
         
         # Process arguments
         args = parser.parse_args()
@@ -93,6 +93,8 @@ USAGE
         port = args.port
         jid = args.jid
         host = args.host
+        if(not host):
+            host = jid.split("@").pop()
         
         
         
