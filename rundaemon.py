@@ -17,9 +17,11 @@ rundaemon is a server exposing GPIOs via HTTP-REST and XMPP
 
 import sys
 import os
+import logging
 
 from argparse import ArgumentParser
 from argparse import ArgumentDefaultsHelpFormatter
+from rasp.xmpp.GpioClient import GpioClient
 
 __all__ = []
 __version__ = 0.1
@@ -89,28 +91,35 @@ USAGE
         args = parser.parse_args()
         
         #paths = args.paths
-        verbose = args.verbose
         port = args.port
         jid = args.jid
+        passwd=args.passwd
         host = args.host
         if(not host):
             host = jid.split("@").pop()
         
         
         
-        if verbose > 0:
-            print("Verbose mode on")
+        if args.verbose > 0:
+            logging.basicConfig(level=logging.DEBUG)
+            logging.debug("Verbose mode on")
+        else:
+            logging.basicConfig(level=logging.INFO)
         
         #create and init GPIOs
-        print("initializing GPIOs")
+        logging.info("initializing GPIOs")
         
         if(not args.norest):
             #startup web backend
-            print("starting up HTTP-REST frontend using port %s" % port)
+            logging.info("starting up HTTP-REST frontend using port %s" % port)
+            
         if(not args.noxmpp):
             #startup xmpp backend
-            print("starting up XMPP frontend using jid %s to connect to server %s" % (jid, host)) 
-               
+            logging.info("starting up XMPP frontend using jid %s to connect to server %s" % (jid, host)) 
+            xmpp = GpioClient(jid,passwd)
+            xmpp.connect()
+            xmpp.process(block=not args.norest)
+            
         return 0
     except KeyboardInterrupt:
         ### handle keyboard interrupt ###
@@ -125,7 +134,7 @@ USAGE
 
 if __name__ == "__main__":
     if DEBUG:
-        sys.argv.append("-h")
+        #sys.argv.append("-h")
         sys.argv.append("-v")
     if TESTRUN:
         import doctest
