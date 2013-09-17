@@ -18,18 +18,20 @@ rundaemon is a server exposing GPIOs via HTTP-REST and XMPP
 import sys
 import os
 import logging
+import thread
 
 from argparse import ArgumentParser
 from argparse import ArgumentDefaultsHelpFormatter
 from rasp.xmpp.GpioClient import GpioClient
+from rasp.http import GpioResource
 
 __all__ = []
 __version__ = 0.1
 __date__ = '2013-09-15'
 __updated__ = '2013-09-15'
 
-DEBUG = 0
-TESTRUN = 0
+DEBUG = 1
+TESTRUN = 1
 PROFILE = 0
 
 class CLIError(Exception):
@@ -109,16 +111,16 @@ USAGE
         #create and init GPIOs
         logging.info("initializing GPIOs")
         
-        if(not args.norest):
-            #startup web backend
-            logging.info("starting up HTTP-REST frontend using port %s" % port)
-            
         if(not args.noxmpp):
             #startup xmpp backend
             logging.info("starting up XMPP frontend using jid %s to connect to server %s" % (jid, host)) 
             xmpp = GpioClient(jid,passwd)
-            xmpp.connect()
-            xmpp.process(block=not args.norest)
+            thread.start_new_thread(xmpp.start,())
+            
+        if(not args.norest):
+            #startup web backend
+            logging.info("starting up HTTP-REST frontend using port %s" % port)
+            GpioResource.start(port)
             
         return 0
     except KeyboardInterrupt:

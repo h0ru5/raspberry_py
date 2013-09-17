@@ -19,6 +19,10 @@ class GpioClient(ClientXMPP):
         self.add_event_handler("session_start", self.session_start)
         self.add_event_handler("message", self.message)
         
+    def start(self):
+        self.connect()
+        self.process(block=True)
+        
     def session_start(self, event):
         self.send_presence()
         self.get_roster()
